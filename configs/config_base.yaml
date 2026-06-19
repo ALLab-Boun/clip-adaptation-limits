@@ -1,0 +1,121 @@
+# Base configuration shared across datasets.
+#
+# Dataset-specific files (e.g. config_coco.yaml, config_flickr.yaml) only define:
+# - data paths (images_path, captions_path)
+#
+# W&B: single project "retrieval" for training; dataset is in run name and config.
+
+model:
+  image_model_name: "openai/clip-vit-large-patch14-336"
+  embed_dim: null
+  # Diagnostic ablation: swap CLIP's causal text encoder for a bidirectional one.
+  # null = use CLIP text encoder (default). "blip" = BLIP BERT-base.
+  text_encoder: null
+  text_model_name: null
+  unfreeze_vision_layers: 4
+  unfreeze_strategy: "full"
+  # B5a/B5b/B5c/B5d only. Leave seg_mode=null to
+  # disable the variant entirely (zero overhead for B0/B0+/B1/B2/B4).
+  # seg_mode: "spatial" (B5a) | "semantic" (B5b) | "continuous" (B5c) |
+  #           "multistream" (B5d) | null
+  seg_mode: null
+  # Discrete modes (spatial/semantic): size of the embedding table.
+  seg_vocab_size: null
+  # Init std for seg_embedding.weight (matches CLIP positional embedding scale).
+  seg_init_std: 0.02
+  # Continuous mode only: per-segment feature dim and MLP hidden width.
+  seg_feature_dim: 5
+  seg_proj_hidden: 128
+  # B5d/B5e multistream fusion. Used only when seg_mode="multistream".
+  fusion_type: null          # "gate" | "cross_attn" | "sam_skip" | "concat_proj"
+  sam_feature_pool_size: 8
+  sam_feature_dim: 256
+  fusion_num_heads: 8        # cross_attn / sam_skip only
+  sam_skip_gate_init_bias: -4.0  # sam_skip only; sigmoid(-4) starts near zero
+
+loss:
+  type: infonce
+  intra_img_weight: 1
+  intra_txt_weight: 1
+  hard_negatives: false
+  cls_weight: 0.0
+  cls_num_classes: 0
+  cls_label_path: null
+
+paraphraser:
+  type: "llama"           # "mistral" | "llama" — selects which offline LLM rewrites to load
+  # Dataset-specific configs must define:
+  #   paraphraser.paths.mistral: <path to mistral rewrites JSON>
+  #   paraphraser.paths.llama:   <path to llama rewrites JSON>
+
+training:
+  batch_size: 128
+  use_grad_cache: false
+
+  epochs: 10
+  seed: 42
+  optimizer: "adamw"
+  scheduler: "cosine"
+  warmup_epochs: 2
+
+  clip_projection_lr: 0.00005
+  backbone_lr: 0.000002
+  # B5a/B5b/B5c: base LR for seg_embedding / seg_projection groups.
+  # B5d:         base LR for fusion_module group.
+  # B4:           base LR for cls_head group.
+  # These fresh groups use a flat (non-cosine) schedule; see _CONSTANT_LR_GROUPS in run.py.
+  seg_lr: 0.001
+  fusion_lr: 0.001
+  cls_lr: 0.001
+  weight_decay: 0.01
+
+data:
+  max_length: 77
+  num_workers: 4
+  image_size: 336
+
+debug:
+  # Truncates BOTH train and val splits to debug_samples after dataset load,
+  # so smoke tests exercise eval / post-training test metrics at small scale.
+  # See create_image_text_dataloader in src/data.py.
+  debug_mode: false
+  debug_samples: 100
+
+eval:
+  # End-of-training evaluation suite. These are default-on for new trained
+  # jobs so W&B summaries contain the same retrieval and compositional metrics
+  # without separate post-hoc submission.
+  ood_retrieval:
+    enabled: true
+  sugarcrepe:
+    enabled: true
+    data_dir: "datasets/sugarcrepe"
+    images_dir: "datasets/coco/val2017"
+    # Full evaluation by default. Override in smoke tests to cap each
+    # subcategory without changing training-time behavior.
+    max_items_per_category: null
+
+augment:
+  # Number of photometric transforms sampled from the pool per image.
+  # Pool size depends on use_grayscale: 3 with grayscale, 2 without. k <= pool_size.
+  k_photometric_augs: 2
+  aug_crop_scale_min: 0.7       # lower bound of RandomResizedCrop scale for augmented view
+  color_jitter_strength: 0.2    # brightness/contrast/saturation magnitude; hue = 0.25x
+  use_grayscale: false           # include RandomGrayscale in photometric pool
+
+logging:
+  use_wandb: true
+  wandb_project: "clip-retrieval"
+  log_freq: 500
+  eval_freq: 1
+  eval_epoch_zero: false
+  save_freq: 3
+  checkpoint_dir: "checkpoints"
+  # Provenance tags forwarded to WandB as both flat lineage.* config keys and
+  # tags on the run (one tag per lineage entry: "lineage.<key>:<value>").
+  # Bump the value here whenever a default that affects past comparisons
+  # changes, so old vs new runs can be filtered apart in the UI.
+  lineage:
+    # v2 = post-B0v3 magnitude promotion (crop_scale_min=0.7, jitter=0.2,
+    # use_grayscale=false). v1 = pre-promotion (0.4, 0.4, true).
+    aug_magnitudes: v2
