@@ -5,7 +5,7 @@
 Results from the MSc thesis experiments, aggregated from W&B test summaries
 and taken from [`results/data/`](https://github.com/iremurhan/clip-retrieval-lab/tree/main/results/data)
 in the thesis repository. Values are the mean ± sample standard deviation
-across seeds, rounded to one decimal; entries without ± are single-seed. Rows
+across the seeds listed in each row, rounded to one decimal. Rows
 use this repository's registry keys, with the thesis run ID in parentheses.
 
 † Logged under the run ID `B0plus`.
