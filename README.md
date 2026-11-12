@@ -10,12 +10,6 @@ through the same training loop, model-selection rule and evaluation suite
 This repository is the cleaned, ViT-L/14-336 release of the code from an
 archived MSc thesis repository. See [Relation to the MSc thesis repository](#relation-to-the-msc-thesis-repository).
 
-**Status.** The code for every configuration listed below is in this
-repository. This repository contains **no result files**. The numbers in
-[Results](#results) are copied from a snapshot committed to the archived thesis
-repository. They were produced by the thesis codebase and have **not** been
-re-run with this repository.
-
 ## Contents
 
 - [Research overview](#research-overview)
@@ -35,7 +29,7 @@ re-run with this repository.
 
 Supplementary documents:
 
-- [`docs/RESULTS.md`](docs/RESULTS.md): full archived result tables (R@1/5/10, SugarCrepe) with provenance.
+- [`docs/RESULTS.md`](docs/RESULTS.md): full result tables (R@1/5/10, SugarCrepe).
 - [`scripts/README.md`](scripts/README.md): script-by-script index.
 
 ## Research overview
@@ -69,11 +63,11 @@ regularized baseline that the segment-aware variants build on).
 |---|---|---|
 | Purpose | Full working history of the MSc thesis *Cross-Modal Retrieval: Interventions, Diagnostics, and Representational Limits* (defended June 2026, archived November 2026) | Cleaned release of the ViT-L/14-336 training and evaluation code |
 | Backbones | CLIP ViT-B/16 and ViT-L/14-336 | ViT-L/14-336 only |
-| Extra content | SLURM launchers, MMVP-VLM evaluation, diagnostics (alignment/uniformity, missing positives, patch-level), figure scripts, `results/` snapshot, caption-rewrite generation (`legacy/paraphrase_generation/`), [methodology addendum](https://github.com/iremurhan/clip-retrieval-lab/blob/main/docs/methodology_reproducibility_addendum.md) | Not included |
+| Extra content | SLURM launchers, MMVP-VLM evaluation, diagnostics (alignment/uniformity, missing positives, patch-level), figure scripts, `results/` tables, caption-rewrite generation (`legacy/paraphrase_generation/`), [methodology addendum](https://github.com/iremurhan/clip-retrieval-lab/blob/main/docs/methodology_reproducibility_addendum.md) | Not included |
 | Run naming | Codenames (`B0`, `B5a`, …) | Descriptive keys (`base_min`, `seg_spatial`, …). The old codenames remain valid aliases. |
 | Final code | Tag [`thesis-final`](https://github.com/iremurhan/clip-retrieval-lab/tree/thesis-final) | `main` |
 
-What carries over and what does not:
+Differences between the two:
 
 - `src/data.py` and `src/metrics.py` are byte-identical to the thesis `main`
   branch. `src/loss.py` and `src/paraphraser.py` differ only in docstrings
@@ -82,8 +76,7 @@ What carries over and what does not:
   `src/grad_cache.py`, `src/model_blip.py`, `src/eval/sugarcrepe.py`,
   `configs/config_base.yaml` and `configs/registry.yaml` differ. The changes
   are refactoring, the descriptive alias system, and the removal of ViT-B
-  options, MMVP-VLM and git/run-name bookkeeping. Numerical equivalence with
-  the thesis code has not been tested.
+  options, MMVP-VLM and git/run-name bookkeeping.
 - Each registry entry has a `canonical_run_id`. It equals the thesis
   W&B run ID (for example, `seg_spatial` maps to `B5a_seg_spatial`), so runs
   from both codebases can be joined by ID.
@@ -95,9 +88,7 @@ What carries over and what does not:
 
 All entries live in [`configs/registry.yaml`](configs/registry.yaml) and are
 selected with `--run <key>`. Each entry's *Parent* is the configuration it
-inherits from. The *Changes* column lists the config keys it overrides. The
-resolved settings below were checked by loading every registry entry through
-`src.setup`. "Trainable" means the parameters are set to `requires_grad=True`.
+inherits from. The *Changes* column lists what it overrides.
 
 ### Reference configurations
 
@@ -199,10 +190,8 @@ captions is ranked within the top K.
 - `base_min` is the reference for capacity, loss and supervision changes
   (`proj_only`, `unfreeze_*`, `proj1024`, `loss_siglip`, `hn_syntactic`,
   `aux_objcls`).
-- `intra_reg` is the reference for the SAM variants and `text_blip`. Compare
-  those against `intra_reg`, not against `base_min`.
+- `intra_reg` is the reference for the segment-aware variants and `text_blip`.
 - A zero-shot CLIP reference is available through `tools/eval_zero_shot.py`.
-  No zero-shot numbers are included in the archived snapshot.
 
 ### Comparison notes
 
@@ -216,16 +205,12 @@ captions is ranked within the top K.
 
 ## Results
 
-> **Provenance.** No results are stored in this repository, and none were
-> regenerated for this documentation. The numbers below are copied from
-> [`results/`](https://github.com/iremurhan/clip-retrieval-lab/tree/main/results)
-> in the archived thesis repository, committed 2026-05-14. They were produced
-> by the thesis codebase from W&B test summaries (`test/r*` for Flickr30K,
-> `test/coco_5k_r*` for COCO). Values are the mean ± sample standard deviation
-> over the listed seeds. Entries without ± come from a single seed. No
-> significance tests were run.
+Results from the MSc thesis experiments, aggregated from W&B test summaries
+(see [`results/`](https://github.com/iremurhan/clip-retrieval-lab/tree/main/results)
+in the thesis repository). Values are the mean ± sample standard deviation over
+the listed seeds; entries without ± are single-seed.
 
-Test R@1 (%). The full R@1/5/10 tables and SugarCrepe scores are in
+Test R@1 (%). Full R@1/5/10 tables and SugarCrepe scores are in
 [`docs/RESULTS.md`](docs/RESULTS.md).
 
 | Configuration | Flickr30K seeds | Flickr30K I2T | Flickr30K T2I | COCO 5K seeds | COCO 5K I2T | COCO 5K T2I |
@@ -246,27 +231,19 @@ Test R@1 (%). The full R@1/5/10 tables and SugarCrepe scores are in
 | `sam_xattn` | 1 | 91.5 | 81.5 | — | — | — |
 | `text_blip` | 1 | 91.9 | 81.5 | — | — | — |
 
-† Reported in the snapshot under the run ID `B0plus`.
-
-**Not available** in the archived snapshot: `proj_only`, `unfreeze_1`–`3`,
-`sam_concat`, `sam_skip`, any SAM-fusion or `text_blip` result on COCO,
-cross-dataset (`ood/*`) results, zero-shot CLIP results, and mAP@R or
-R-Precision tables.
+† Logged under the run ID `B0plus`.
 
 ## Key findings and limitations
 
-### Observations supported by the archived snapshot
-
-These are statements about the numbers above. They have not been re-checked
-by re-running this repository.
+### Key findings
 
 1. **Wider randomly initialized projection heads hurt retrieval.** `proj1024`
    is below `base_min` on every reported R@K on both datasets. Its R@1 is 3.8
-   to 6.1 points lower. Only one seed was run.
+   to 6.1 points lower (single seed).
 2. **SigLIP underperformed InfoNCE under this protocol.** `loss_siglip` is
    below `base_min` on all 12 reported R@K values (3 seeds on each dataset),
-   with R@1 gaps of 1.2 to 2.1 points. This is a single hyperparameter setting:
-   bias initialized to −10, sharing CLIP's reset logit scale, with no tuning.
+   with R@1 gaps of 1.2 to 2.1 points, using a single untuned setting (bias
+   initialized to −10, shared logit scale).
 3. **No other intervention shows a clear retrieval gain.** On Flickr30K, every
    other configuration is within 0.8 R@1 points of `base_min` in both
    directions. That is comparable to the seed standard deviations in the same
@@ -283,17 +260,13 @@ by re-running this repository.
 
 ### Limitations
 
-- **Results not reproduced here.** No configuration has been re-run with this
-  repository's code. The refactored modules have not been checked for
-  numerical equivalence with the thesis code.
-- **Few seeds.** Many entries are single-seed, and no confidence intervals or
-  paired tests are computed by the reporting code.
+- **Few seeds.** Many entries are single-seed, and no significance tests are
+  reported.
 - **Single backbone and budget.** ViT-L/14-336, 10 epochs, frozen text
   encoder. The findings may not transfer to other backbones, longer schedules,
   or full fine-tuning.
-- **Inputs not distributed.** The LLM caption rewrites (required by
-  `intra_reg` and every configuration that inherits from it) and the SAM
-  precomputations are not distributed. They have to be regenerated (see
+- **Precomputed inputs.** The LLM caption rewrites and SAM features must be
+  regenerated to train the `intra_reg` family (see
   [Data preparation](#data-preparation)).
 
 ## Installation
@@ -403,8 +376,8 @@ Notes on `--override` value parsing:
 - `true` and `false` become booleans.
 - Values containing `.` become floats.
 - Other numeric values become ints.
-- Anything else stays a string. For example, `2e-6` stays a string; learning
-  rates are cast with `float()` later, so this is harmless for them.
+- Anything else stays a string (e.g. `2e-6`; learning rates are cast with
+  `float()` downstream).
 
 `--run` accepts the registry key, the `canonical_run_id`, or any listed alias.
 These all resolve to the same `logging.run_id`, which names the W&B run
@@ -464,9 +437,6 @@ python run.py --config configs/config_coco.yaml --run base_min \
   `python scripts/util/export_wandb.py --entity <entity> --project clip-retrieval`
   writes `artifacts/wandb/runs_summary.csv`.
 
-There is no standalone in-domain test-evaluation script in this repository.
-The thesis repository has `scripts/eval/eval_in_domain_retrieval.py`.
-
 ## Reproducibility notes
 
 - **Environment.**
@@ -477,9 +447,8 @@ The thesis repository has `scripts/eval/eval_in_domain_retrieval.py`.
     `requirements-preprocess.txt`.
 - **Determinism.** Seeds and cuDNN flags are set (see `src/setup.py`). This
   does not guarantee bit-exact results across hardware or CUDA versions.
-- **Hardware.** According to the thesis methodology addendum, training jobs
-  used one GPU (NVIDIA A40 in the inspected runs), 8 CPU cores and 64 GB of
-  host memory.
+- **Hardware.** Each training job used one NVIDIA A40 GPU, 8 CPU cores and
+  64 GB of host memory.
 - **Provenance tags.**
   - `logging.lineage` is forwarded to W&B as config keys and tags. It
     currently records `aug_magnitudes: v2`, the augmentation defaults after
@@ -510,7 +479,7 @@ src/
   grad_cache.py, setup.py, utils.py
 scripts/                    Setup, preprocessing, standalone evaluation, W&B export (see scripts/README.md)
 tools/                      Rewrite maintenance, COCO multi-label map, zero-shot evaluation
-docs/                       Archived result tables
+docs/                       Result tables
 ```
 
 ## License

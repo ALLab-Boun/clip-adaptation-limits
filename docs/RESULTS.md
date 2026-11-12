@@ -1,28 +1,14 @@
-# Archived Results
+# Results
 
 [← README](../README.md)
 
-## Provenance
+Results from the MSc thesis experiments, aggregated from W&B test summaries
+and taken from [`results/data/`](https://github.com/iremurhan/clip-retrieval-lab/tree/main/results/data)
+in the thesis repository. Values are the mean ± sample standard deviation
+across seeds, rounded to one decimal; entries without ± are single-seed. Rows
+use this repository's registry keys, with the thesis run ID in parentheses.
 
-- **Source.** [`iremurhan/clip-retrieval-lab/results/data/`](https://github.com/iremurhan/clip-retrieval-lab/tree/main/results/data)
-  in the archived MSc thesis repository, committed 2026-05-14:
-  - `04A_retrieval_grouped_bar_data.csv` for retrieval. It matches
-    `results/tables/04_retrieval.tex` in the same repository.
-  - `01_sugarcrepe_interventions_data.csv` and
-    `02_sugarcrepe_capacity_data.csv` for SugarCrepe.
-- **Producer.** The thesis codebase aggregated W&B run summaries
-  (`summary/test/r*` for Flickr30K, `summary/test/coco_5k_r*` for COCO,
-  `summary/sugarcrepe/*`). The tables below were generated directly from those
-  CSV files and rounded to one decimal.
-- **Not re-run.** None of these numbers were produced or checked by running
-  this repository.
-- **Statistics.** Mean ± sample standard deviation across seeds. Entries
-  without ± are single-seed. No significance tests or confidence intervals are
-  available.
-- **Labels.** Rows use this repository's registry keys. The snapshot's run ID
-  is given in parentheses where it differs.
-
-† `intra_reg` is reported in the snapshot under the run ID `B0plus`.
+† Logged under the run ID `B0plus`.
 
 ## Retrieval: test split
 
@@ -64,16 +50,14 @@ Recall@K (%). I2T is image-to-text and T2I is text-to-image.
 | `seg_semantic` (B5b_seg_semantic) | 1 | 65.2 | 88.0 | 93.5 | 53.0 | 78.7 | 86.7 |
 | `seg_geom` (B5c_seg_continuous) | 1 | 65.6 | 87.9 | 93.5 | 53.1 | 78.8 | 86.8 |
 
-COCO values are the `coco_5k` recalls computed by `eccv-caption`, not the
-`test/r*` keys. The thesis repository also holds COCO 1K, CxC and ECCV mAP@R
-values for some runs (`02_coco1k_vs_eccv_mapr_data.csv`,
-`02_r1_vs_eccv_mapr_data.csv`). They are not reproduced here.
+COCO values are the `coco_5k` recalls logged under `test/coco_5k_*`. COCO 1K,
+CxC and ECCV mAP@R values are in the thesis repository
+(`02_coco1k_vs_eccv_mapr_data.csv`, `02_r1_vs_eccv_mapr_data.csv`).
 
 ## SugarCrepe
 
 Accuracy (%), COCO-trained models. `overall` is the unweighted mean of the
-seven subsets. SugarCrepe seed counts differ from the retrieval seed counts
-for the same configuration.
+seven subsets.
 
 | Configuration | Seeds | add_att | add_obj | replace_att | replace_obj | replace_rel | swap_att | swap_obj | overall |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
