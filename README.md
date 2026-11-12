@@ -31,6 +31,7 @@ re-run with this repository.
 - [Evaluation](#evaluation)
 - [Reproducibility notes](#reproducibility-notes)
 - [Repository layout](#repository-layout)
+- [License](#license)
 
 Supplementary documents:
 
@@ -511,3 +512,7 @@ scripts/                    Setup, preprocessing, standalone evaluation, W&B exp
 tools/                      Rewrite maintenance, COCO multi-label map, zero-shot evaluation
 docs/                       Archived result tables
 ```
+
+## License
+
+MIT. See [`LICENSE`](LICENSE).
