@@ -6,7 +6,7 @@ Training engine for Cross-Modal Retrieval.
 Usage:
     This module is typically invoked via `run.py`.
     
-    python run.py --config configs/config_val.yaml
+    python run.py --config configs/config_flickr30k.yaml --run base_min
     
     The Trainer class manages:
     - Training loop with Mixed Precision (AMP)

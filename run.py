@@ -188,6 +188,8 @@ def main():
     # canonical run_id — keeping WandB grouping / checkpoint paths stable.
     if args.run:
         config.setdefault("logging", {})["run_id"] = resolve_canonical_run_id(args.run)
+    else:
+        config.setdefault("logging", {}).setdefault("run_id", "unnamed")
 
     # Apply --seed override (after registry so it takes highest priority)
     if args.seed is not None:

@@ -1,11 +1,15 @@
 """
 src/paraphraser.py
 ------------------
-LaCLIP-style paraphraser for intra-modal text contrastive loss
-L_text_text = InfoNCE(T_orig, T_paraphrased).
+LaCLIP-style paraphraser for the intra-modal text contrastive loss
+L_text_text = InfoNCE(T_para_a, T_para_b): two distinct precomputed
+paraphrases of the same caption (see sample_pair). The original caption is
+not part of this term.
 
-Loads LLM-generated caption rewrites from a JSON file produced offline by
-scripts/generate_rewrites.py and returns a random rewrite per sample.
+Loads LLM-generated caption rewrites from a JSON file produced offline and
+returns a random rewrite per sample. The generation script is not part of this
+repository; it is legacy/paraphrase_generation/generate_rewrites.py in the
+archived thesis repository (github.com/iremurhan/clip-retrieval-lab).
 JSON format: {sentid_str: [rewrite1, rewrite2, ...]}.
 """
 
@@ -36,7 +40,8 @@ class PrecomputedLLMParaphraser:
         if not rewrites_path or not os.path.exists(rewrites_path):
             raise FileNotFoundError(
                 f"LLM rewrites file not found: {rewrites_path}. "
-                "Run scripts/generate_rewrites.py first."
+                "Generate it with legacy/paraphrase_generation/generate_rewrites.py "
+                "from github.com/iremurhan/clip-retrieval-lab (see README, Data preparation)."
             )
         with open(rewrites_path, 'r') as f:
             raw = json.load(f)
@@ -68,7 +73,9 @@ class PrecomputedLLMParaphraser:
             if not rw_list:
                 raise KeyError(
                     f"sentid {sid_int} not found in rewrites file. "
-                    f"Rewrites file is incomplete — re-run scripts/generate_rewrites.py."
+                    f"Rewrites file is incomplete — regenerate it with "
+                    f"legacy/paraphrase_generation/generate_rewrites.py from "
+                    f"github.com/iremurhan/clip-retrieval-lab."
                 )
             texts.append(self.rng.choice(rw_list))
 

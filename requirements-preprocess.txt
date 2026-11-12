@@ -1,0 +1,6 @@
+# Optional dependencies for SAM preprocessing (scripts/preprocess/precompute_sam.py),
+# needed only for the seg_* and sam_* configurations.
+# The SAM ViT-B checkpoint (sam_vit_b_01ec64.pth) is downloaded separately:
+# see https://github.com/facebookresearch/segment-anything#model-checkpoints
+segment-anything @ git+https://github.com/facebookresearch/segment-anything.git
+pycocotools
