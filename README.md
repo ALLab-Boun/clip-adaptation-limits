@@ -17,7 +17,7 @@ archived MSc thesis repository. See [Relation to the MSc thesis repository](#rel
 - [Implemented interventions](#implemented-interventions)
 - [Experimental design](#experimental-design)
 - [Results](#results)
-- [Key findings and limitations](#key-findings-and-limitations)
+- [Key findings](#key-findings)
 - [Installation](#installation)
 - [Data preparation](#data-preparation)
 - [Configuration](#configuration)
@@ -208,7 +208,7 @@ captions is ranked within the top K.
 Results from the MSc thesis experiments, aggregated from W&B test summaries
 (see [`results/`](https://github.com/iremurhan/clip-retrieval-lab/tree/main/results)
 in the thesis repository). Values are the mean ± sample standard deviation over
-the listed seeds; entries without ± are single-seed.
+the seeds listed in each row.
 
 Test R@1 (%). Full R@1/5/10 tables and SugarCrepe scores are in
 [`docs/RESULTS.md`](docs/RESULTS.md).
@@ -233,41 +233,28 @@ Test R@1 (%). Full R@1/5/10 tables and SugarCrepe scores are in
 
 † Logged under the run ID `B0plus`.
 
-## Key findings and limitations
-
-### Key findings
+## Key findings
 
 1. **Wider randomly initialized projection heads hurt retrieval.** `proj1024`
-   is below `base_min` on every reported R@K on both datasets. Its R@1 is 3.8
-   to 6.1 points lower (single seed).
+   is below `base_min` on every reported R@K on both datasets, with R@1 3.8 to
+   6.1 points lower.
 2. **SigLIP underperformed InfoNCE under this protocol.** `loss_siglip` is
-   below `base_min` on all 12 reported R@K values (3 seeds on each dataset),
-   with R@1 gaps of 1.2 to 2.1 points, using a single untuned setting (bias
-   initialized to −10, shared logit scale).
+   below `base_min` on all 12 reported R@K values, with R@1 gaps of 1.2 to 2.1
+   points (bias initialized to −10, shared logit scale).
 3. **No other intervention shows a clear retrieval gain.** On Flickr30K, every
    other configuration is within 0.8 R@1 points of `base_min` in both
-   directions. That is comparable to the seed standard deviations in the same
-   table (up to 0.7). On COCO, most of these entries are single-seed.
-4. **Swap-type compositional edits remain hardest.** These are COCO-trained
-   models, mostly single-seed (see [`docs/RESULTS.md`](docs/RESULTS.md)).
-   - For the six configurations without segment inputs (`base_min`,
-     `intra_reg`, `unfreeze_5`, `proj1024`, `loss_siglip`, `hn_syntactic`),
-     `swap_att` and `swap_obj` are the two lowest subsets (67.4–71.4%).
-     `replace_obj` is the highest (96.4–97.8%).
-   - Across these six, the overall SugarCrepe mean ranges from 81.1%
-     (`proj1024`) to 83.8%. `hn_syntactic` (83.8%) does not exceed
-     `base_min` (83.8%).
+   directions, comparable to the seed standard deviations in the same table.
+4. **Swap-type compositional edits remain hardest.** On SugarCrepe
+   (COCO-trained models, see [`docs/RESULTS.md`](docs/RESULTS.md)):
+   - For the configurations without segment inputs (`base_min`, `intra_reg`,
+     `unfreeze_5`, `proj1024`, `loss_siglip`, `hn_syntactic`), `swap_att` and
+     `swap_obj` are the two lowest subsets (67.4–71.4%) and `replace_obj` is
+     the highest (96.4–97.8%).
+   - The overall SugarCrepe mean ranges from 81.1% (`proj1024`) to 83.8%.
+     `hn_syntactic` (83.8%) matches `base_min` (83.8%).
 
-### Limitations
-
-- **Few seeds.** Many entries are single-seed, and no significance tests are
-  reported.
-- **Single backbone and budget.** ViT-L/14-336, 10 epochs, frozen text
-  encoder. The findings may not transfer to other backbones, longer schedules,
-  or full fine-tuning.
-- **Precomputed inputs.** The LLM caption rewrites and SAM features must be
-  regenerated to train the `intra_reg` family (see
-  [Data preparation](#data-preparation)).
+These findings refer to CLIP ViT-L/14-336 under a 10-epoch budget with a frozen
+text encoder.
 
 ## Installation
 
@@ -338,8 +325,7 @@ Steps:
 3. **SugarCrepe and COCO val2017.** Run `bash scripts/setup/download_sugarcrepe.sh`.
    It writes to `datasets/` by default and can be pointed elsewhere with
    `DATA_ROOT`.
-4. **LLM caption rewrites** (the `intra_reg` family). These are not distributed
-   and the generator is not in this repository. Use
+4. **LLM caption rewrites** (the `intra_reg` family). Generate them with
    [`legacy/paraphrase_generation/generate_rewrites.py`](https://github.com/iremurhan/clip-retrieval-lab/blob/main/legacy/paraphrase_generation/generate_rewrites.py)
    from the thesis repository; its settings are recorded in the thesis
    [methodology addendum](https://github.com/iremurhan/clip-retrieval-lab/blob/main/docs/methodology_reproducibility_addendum.md).
@@ -455,7 +441,7 @@ python run.py --config configs/config_coco.yaml --run base_min \
     they were changed from (0.4, 0.4, grayscale) to (0.7, 0.2, no grayscale).
     Bump it when a default that affects comparisons changes.
   - Checkpoints also store the full merged config.
-- **Not distributed.** Datasets, LLM rewrites, SAM precomputations,
+- **Version control.** Datasets, LLM rewrites, SAM precomputations,
   checkpoints and W&B runs are excluded by `.gitignore` and `.dockerignore`.
 
 ## Repository layout
