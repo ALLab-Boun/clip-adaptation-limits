@@ -22,9 +22,11 @@ class DualEncoder(nn.Module):
     providing extremely strong visual-semantic representations.
     Uses 336x336 input resolution for higher quality features.
     
-    Strategy:
-    - Freeze CLIP backbone (vision + text encoders)
-    - Train only projection layers for domain adaptation
+    Strategy (see _apply_freezing_strategy):
+    - Freeze the text encoder and all but the last N vision blocks
+      (N = model.unfreeze_vision_layers; 4 in config_base.yaml)
+    - Set requires_grad=True on the projection layers, the last N vision
+      blocks, the vision post-LayerNorm (when N > 0) and logit_scale
     """
     
     def __init__(self, config):

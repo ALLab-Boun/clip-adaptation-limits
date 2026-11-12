@@ -8,7 +8,7 @@ to a multi-hot tensor of shape (80,) over the 80 COCO categories.
 
 Usage:
     python tools/build_coco_multilabel.py \
-        --ann_dir ~/experiments/datasets/coco/annotations \
+        --ann_dir datasets/coco/annotations \
         --output datasets/coco/coco_multilabel_map.pt
 """
 

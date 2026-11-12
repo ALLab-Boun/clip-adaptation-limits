@@ -26,10 +26,12 @@ runs:
     canonical_run_id: B0_uf4
     aliases: [B0_uf4]
     description: >-
-      Minimal fine-tune baseline. Tests whether training only the CLIP
-      projection layers with vanilla InfoNCE (no augmentation, no intra-modal
-      contrast) is sufficient for competitive retrieval. Establishes the
-      performance floor for all ablations.
+      Minimal fine-tune baseline. Marks as trainable (requires_grad) the CLIP
+      projection layers, the last 4 vision blocks (model.unfreeze_vision_layers
+      from config_base.yaml), the vision post-LayerNorm and logit_scale, and
+      trains with vanilla InfoNCE (no
+      augmented views, no intra-modal contrast, no paraphrases). Reference
+      point for the capacity, loss and supervision ablations.
     overrides:
       logging.eval_epoch_zero: true
       loss.intra_img_weight: 0
@@ -135,9 +137,10 @@ runs:
     description: >-
       Full-featured baseline (default config). Adds bipartite crop
       augmentation, LLM-paraphrased captions for text diversity, symmetric
-      intra-modal contrast (image-image + text-text), and 4-layer vision
-      backbone unfreezing on top of B0. All segment-aware (B5*) ablations
-      branch from this configuration.
+      intra-modal contrast (image-image + text-text) on top of B0, keeping
+      B0's 4-layer vision unfreezing. Training captions without a precomputed
+      rewrite are dropped when the text-text loss is on. All segment-aware
+      (B5*) ablations branch from this configuration.
     overrides: {}  # current config_base.yaml defaults
 
   # ===========================================================================

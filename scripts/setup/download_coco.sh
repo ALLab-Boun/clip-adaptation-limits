@@ -6,8 +6,12 @@
 # Total download size: ~19 GB
 # Unzipped size: ~20 GB
 
-# Target directory
-DATA_DIR="$HOME/experiments/datasets/coco"
+# Target directory: <repo>/datasets/coco by default (matches configs/config_coco.yaml).
+# Override the parent directory with DATA_ROOT=/path/to/datasets.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+DATA_ROOT="${DATA_ROOT:-${REPO_ROOT}/datasets}"
+DATA_DIR="${DATA_ROOT}/coco"
 
 echo "=============================================="
 echo "Downloading MS-COCO 2014 to $DATA_DIR"
@@ -19,7 +23,7 @@ cd "$DATA_DIR"
 
 # 1. Download Train2014 Images (13GB)
 if [ ! -d "train2014" ]; then
-    echo "[1/3] Downloading train2014.zip..."
+    echo "[1/4] Downloading train2014.zip..."
     wget -c http://images.cocodataset.org/zips/train2014.zip
     
     echo "Unzipping train2014..."
@@ -33,7 +37,7 @@ fi
 # 2. Download Val2014 Images (6GB)
 # Note: Karpathy Test split is a subset of this Val set.
 if [ ! -d "val2014" ]; then
-    echo "[2/3] Downloading val2014.zip..."
+    echo "[2/4] Downloading val2014.zip..."
     wget -c http://images.cocodataset.org/zips/val2014.zip
     
     echo "Unzipping val2014..."
@@ -46,13 +50,24 @@ fi
 
 # 3. Download Captions/Annotations (Optional but good to have)
 if [ ! -d "annotations" ]; then
-    echo "[3/3] Downloading annotations..."
+    echo "[3/4] Downloading annotations..."
     wget -c http://images.cocodataset.org/annotations/annotations_trainval2014.zip
     
     echo "Unzipping annotations..."
     unzip -q annotations_trainval2014.zip
     rm annotations_trainval2014.zip
     echo "✓ Annotations ready."
+fi
+
+# 4. Karpathy split JSONs (dataset_coco.json, and dataset_flickr30k.json for Flickr30k)
+if [ ! -f "caption_datasets/dataset_coco.json" ]; then
+    echo "[4/4] Downloading Karpathy caption splits..."
+    wget -c https://cs.stanford.edu/people/karpathy/deepimagesent/caption_datasets.zip
+    mkdir -p caption_datasets "${DATA_ROOT}/flickr30k/caption_datasets"
+    unzip -q -j -o caption_datasets.zip '*dataset_coco.json' -d caption_datasets
+    unzip -q -j -o caption_datasets.zip '*dataset_flickr30k.json' -d "${DATA_ROOT}/flickr30k/caption_datasets"
+    rm caption_datasets.zip
+    echo "✓ Karpathy splits ready."
 fi
 
 echo "=============================================="

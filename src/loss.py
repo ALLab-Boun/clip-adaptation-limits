@@ -19,7 +19,8 @@ Core Mechanism:
     2. Minimize similarity between misaligned pairs (image[i] ↔ text[j], i≠j)
 
 Additionally supports optional intra-modal consistency terms that enforce structural
-preservation within each modality (image↔augmented_image, text↔augmented_text).
+preservation within each modality: augmented image view A ↔ augmented image view B,
+and paraphrase A ↔ paraphrase B of the same caption.
 """
 
 import logging
@@ -161,15 +162,19 @@ class SymmetricInfoNCELoss(nn.Module):
     Mathematical Formulation:
     
     1. Inter-Modal Loss (Main Objective):
-       - Compute cosine similarity matrix S[i,j] = cos(image[i], text[j]) / τ
+       - Compute S[i,j] = exp(logit_scale) * cos(image[i], text[j]), using CLIP's
+         learnable logit_scale (exp clamped at 100)
        - For Image→Text: CrossEntropy(S[i,:], label=i) for each image i
        - For Text→Image: CrossEntropy(S[:,j], label=j) for each text j
        - Loss_Inter = (Loss_I2T + Loss_T2I) / 2
     
     2. Intra-Modal Loss (Optional Regularization):
-       - Image Intra-Modal: Contrastive loss between img_embeds and img_aug_embeds
-       - Text Intra-Modal: Contrastive loss between txt_embeds and txt_aug_embeds
-       - Enforces consistency between original and augmented views within each modality
+       - Image Intra-Modal: contrastive loss between two independently augmented
+         views (img_aug_a_embeds vs. img_aug_b_embeds); the clean view is not used
+       - Text Intra-Modal: contrastive loss between two distinct precomputed
+         paraphrases (txt_aug_a_embeds vs. txt_aug_b_embeds); the original
+         caption is not used
+       - Both reuse the same logit_scale as the inter-modal term
     
     Total Loss = Loss_Inter + w_img * Loss_Img_Intra + w_txt * Loss_Txt_Intra
     
@@ -177,7 +182,6 @@ class SymmetricInfoNCELoss(nn.Module):
     
     Args:
         config (dict): Configuration dictionary containing:
-            - loss.temperature: Temperature scaling parameter τ (controls softmax sharpness)
             - loss.intra_img_weight: Weight for image intra-modal loss (default: 0.0)
             - loss.intra_txt_weight: Weight for text intra-modal loss (default: 0.0)
             
